@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TPA_CPM NOTÍCIAS</title>
-    <!-- Carrega a biblioteca Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg-principal: #0a0b10; --neon-azul: #00f0ff; --neon-rosa: #ff007f; --texto: #ffffff; }
@@ -13,14 +12,12 @@
         .login-box { background: #1a1a2e; padding: 30px; border-radius: 20px; text-align: center; width: 80%; max-width: 300px; }
         .input-field { width: 100%; padding: 10px; margin: 10px 0; border-radius: 8px; border: none; }
         .btn-neon { width: 100%; padding: 10px; background: var(--neon-azul); border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .card-post { background: #1a1a2e; margin: 20px; padding: 15px; border-radius: 15px; }
-        .post-media { width: 100%; border-radius: 10px; }
-        #painel-admin { display: none; padding: 20px; background: #252545; border-radius: 15px; margin: 20px; }
+        #conteudo { padding: 20px; }
+        #chat-box { height: 200px; overflow-y:scroll; border: 1px solid #333; margin: 10px 0; padding: 10px; background: #000; }
+        #painel-admin { display: none; padding: 20px; background: #252545; border-radius: 15px; margin: 20px 0; }
     </style>
 </head>
 <body>
-
-    <!-- LOGIN -->
     <div id="tela-login">
         <div class="login-box">
             <h2>TPA_CPM</h2>
@@ -32,18 +29,14 @@
         </div>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL -->
-    <div id="conteudo" style="padding-bottom: 50px;">
-        <h1 style="text-align:center; padding-top:20px;">TPA_CPM NOTÍCIAS</h1>
+    <div id="conteudo">
+        <h1>FEED TPA_CPM</h1>
         <div id="feed-noticias"></div>
-        <div id="chat-box" style="height: 200px; overflow-y:scroll; border: 1px solid #333; margin: 20px; padding: 10px;"></div>
-        <div style="margin: 20px;">
-            <input type="text" id="chat-msg" placeholder="Mensagem...">
-            <button onclick="enviarMensagemChat()">Enviar</button>
-        </div>
+        <div id="chat-box"></div>
+        <input type="text" id="chat-msg" placeholder="Mensagem...">
+        <button onclick="enviarMensagemChat()">Enviar</button>
     </div>
 
-    <!-- PAINEL ADMIN -->
     <div id="painel-admin">
         <h3>👑 Painel Admin</h3>
         <input type="text" id="post-titulo" class="input-field" placeholder="Título">
@@ -52,17 +45,12 @@
     </div>
 
     <script>
-        // CONFIGURAÇÃO DO SUPABASE
         const SUPABASE_URL = "https://mricbliq3frbyny6rfrh.supabase.co"; 
         const SUPABASE_KEY = "sb_publishable_mRiCBLIq3fRbYnY6RFRrHw_xe5r6Ytq";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        // VARIÁVEIS DE ESTADO
         let utilizadorLogado = null;
         let modoCadastro = false;
     </script>
-
-    <!-- CHAMADA DOS MÓDULOS JS QUE JÁ CRIASTE -->
     <script src="auth.js"></script>
     <script src="chat.js"></script>
     <script src="feed.js"></script>
