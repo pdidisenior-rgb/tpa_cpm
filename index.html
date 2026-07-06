@@ -1,310 +1,563 @@
 <!DOCTYPE html>
-<html lang="pt-AO">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TPA CPM - O Portal Nº 1 da Comunidade</title>
-    <!-- Supabase JS Library -->
+    <title>TPA_CPM NOTÍCIAS</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-principal: #0b0c10;
-            --bg-card: #1f2833;
-            --neon-vermelho: #ff0055;
+            --bg-principal: #0a0b10;
+            --bg-card: rgba(20, 22, 32, 0.7);
             --neon-azul: #00f0ff;
-            --texto: #c5c6c7;
-            --admin-color: #ffaa00;
+            --neon-rosa: #ff007f;
+            --texto: #ffffff;
+            --vidro: rgba(255, 255, 255, 0.03);
+            --borda-vidro: rgba(255, 255, 255, 0.08);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: var(--bg-principal); color: #fff; padding: 15px; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        header { text-align: center; margin: 20px 0 30px 0; }
-        header h1 { font-size: 36px; text-transform: uppercase; letter-spacing: 2px; color: #fff; text-shadow: 0 0 15px var(--neon-vermelho), 0 0 30px var(--neon-vermelho); line-height: 1.1; }
-        header p { color: var(--neon-azul); font-size: 13px; font-weight: bold; letter-spacing: 1px; margin-top: 10px; text-shadow: 0 0 8px var(--neon-azul); text-transform: uppercase; }
+        body {
+            background-color: var(--bg-principal);
+            color: var(--texto);
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.15), transparent 50%);
+        }
 
-        .auth-bar { background: var(--bg-card); padding: 12px; border-radius: 10px; margin-bottom: 25px; display: flex; gap: 10px; align-items: center; border: 1px solid #2f3b4c; }
-        .auth-bar input { flex: 1; padding: 10px; background: #0b0c10; border: 1px solid #3f4d63; border-radius: 6px; color: #fff; font-size: 14px; }
-        .auth-bar button { padding: 10px 15px; background: var(--neon-vermelho); border: none; border-radius: 6px; color: #fff; font-weight: bold; cursor: pointer; font-size: 14px; }
-        .btn-admin-trigger { background: #2f3b4c !map; padding: 10px 15px; border-radius: 6px; border: 1px solid var(--neon-vermelho); color: #fff; font-weight: bold; cursor: pointer; font-size: 14px; }
+        /* ---------------- INTERFACE DE LOGIN DE ÚLTIMA GERAÇÃO ---------------- */
+        #tela-login {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--bg-principal);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
 
-        .status-badge { background: #151a22; padding: 8px 12px; border-radius: 6px; font-size: 13px; border-left: 4px solid var(--neon-azul); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .login-box {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--borda-vidro);
+            padding: 40px 30px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 40px rgba(0, 240, 255, 0.1);
+        }
 
-        .section-title { font-size: 22px; text-transform: uppercase; letter-spacing: 1px; margin: 30px 0 15px 0; color: #fff; border-left: 4px solid var(--neon-azul); padding-left: 10px; }
+        .login-logo {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 10px var(--neon-rosa), 0 0 20px var(--neon-rosa);
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
 
-        /* Feed Cards */
-        .post-card { background: var(--bg-card); border-radius: 12px; padding: 18px; margin-bottom: 20px; border: 1px solid #2f3b4c; }
-        .post-title { font-size: 18px; font-weight: bold; margin-bottom: 12px; color: #fff; line-height: 1.3; }
-        .post-media { width: 100%; border-radius: 8px; margin-bottom: 12px; max-height: 380px; object-fit: contain; background: #050508; border: 1px solid #2f3b4c; }
-        .post-actions { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #a0aec0; }
-        .like-btn { font-size: 20px; cursor: pointer; color: var(--neon-vermelho); transition: transform 0.1s; }
-        .like-btn:active { transform: scale(1.3); }
+        .login-sub {
+            font-size: 0.8rem;
+            color: var(--neon-azul);
+            letter-spacing: 1px;
+            margin-bottom: 35px;
+            text-transform: uppercase;
+        }
 
-        /* Chat */
-        .chat-container { background: var(--bg-card); border-radius: 12px; border: 1px solid #2f3b4c; padding: 15px; margin-bottom: 25px; }
-        .chat-box { height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; padding-right: 5px; }
-        .chat-msg { font-size: 14px; line-height: 1.4; word-break: break-word; }
-        .msg-user { color: var(--neon-azul); font-weight: bold; }
-        .msg-admin { color: #ffaa00; font-weight: bold; text-shadow: 0 0 5px #ffaa00; }
-        .chat-input-bar { display: flex; gap: 8px; }
-        .chat-input-bar input { flex: 1; padding: 12px; background: #0b0c10; border: 1px solid #3f4d63; border-radius: 6px; color: #fff; }
-        .chat-input-bar button { padding: 0 20px; background: var(--neon-azul); color: #000; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
 
-        /* Painel Admin Oculto */
-        .admin-panel { background: #1a1018; border: 1px solid var(--admin-color); padding: 20px; border-radius: 12px; margin-top: 30px; display: none; box-shadow: 0 0 15px rgba(255,170,0,0.2); }
-        .admin-panel h3 { color: var(--admin-color); margin-bottom: 15px; font-size: 18px; text-transform: uppercase; }
-        .admin-panel input, .admin-panel select { width: 100%; padding: 12px; background: #0b0c10; border: 1px solid #3f4d63; border-radius: 6px; color: #fff; margin-bottom: 12px; }
-        .file-label { display: block; background: #2f3b4c; padding: 15px; border-radius: 6px; text-align: center; cursor: pointer; margin-bottom: 12px; border: 1px dashed var(--admin-color); font-weight: bold; color: var(--admin-color); }
-        .admin-panel button { width: 100%; padding: 14px; background: var(--admin-color); color: #000; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; text-transform: uppercase; }
+        .input-group label {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--borda-vidro);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--neon-azul);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .btn-neon {
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            border: 2px solid var(--neon-azul);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .btn-neon:hover, .btn-neon:active {
+            background: var(--neon-azul);
+            color: #000;
+            box-shadow: 0 0 25px var(--neon-azul);
+        }
+
+        .alternar-modo {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 20px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .alternar-modo span { color: var(--neon-azul); font-weight: bold; }
+
+        /* ---------------- ESTRUTURA PRINCIPAL E HEADER ---------------- */
+        header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--borda-vidro);
+            background: rgba(10, 11, 16, 0.5);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0; z-index: 100;
+        }
+
+        .logo-btn {
+            background: none;
+            border: none;
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #fff;
+            cursor: pointer;
+            text-shadow: 0 0 10px var(--neon-rosa);
+            transition: transform 0.2s ease;
+            display: inline-block;
+        }
+        .logo-btn:active { transform: scale(0.95); }
+        .logo-btn span { display: block; font-size: 0.75rem; color: var(--neon-azul); text-shadow: none; margin-top: 4px; font-weight: bold;}
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px 15px 100px 15px;
+        }
+
+        /* ---------------- FEED INTELIGENTE ESTILO TIKTOK ---------------- */
+        .feed-container {
+            min-height: 200px;
+        }
+
+        .card-post {
+            background: var(--bg-card);
+            border: 1px solid var(--borda-vidro);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .post-autor {
+            font-weight: 700;
+            color: var(--neon-azul);
+        }
+
+        .post-media {
+            width: 100%;
+            border-radius: 14px;
+            background: #000;
+            max-height: 450px;
+            object-fit: cover;
+            margin-bottom: 12px;
+        }
+
+        .post-titulo {
+            font-size: 1.05rem;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 12px;
+        }
+
+        .btn-action {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+        .btn-action.liked { color: var(--neon-rosa); }
+
+        /* ---------------- CHAT DE PILOTOS REALTIME CORRIGIDO ---------------- */
+        .chat-section {
+            background: var(--bg-card);
+            border: 1px solid var(--borda-vidro);
+            border-radius: 20px;
+            height: 380px;
+            display: flex;
+            flex-direction: column;
+            margin-top: 30px;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 15px;
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid var(--borda-vidro);
+            font-weight: bold;
+            color: var(--neon-azul);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .msg-box {
+            background: rgba(255,255,255,0.04);
+            padding: 10px 14px;
+            border-radius: 14px;
+            max-width: 85%;
+            word-break: break-word;
+            align-self: flex-start;
+        }
+
+        .msg-user {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--neon-rosa);
+            margin-bottom: 2px;
+        }
+
+        .chat-input-area {
+            padding: 12px;
+            display: flex;
+            gap: 10px;
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid var(--borda-vidro);
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--borda-vidro);
+            border-radius: 10px;
+            color: #fff;
+        }
+
+        .btn-send {
+            padding: 0 18px;
+            background: var(--neon-azul);
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* ---------------- PAINEL ADMINISTRATIVO FLUTUANTE ---------------- */
+        .admin-panel {
+            background: rgba(15, 16, 26, 0.95);
+            border: 1px solid var(--neon-rosa);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 40px;
+            box-shadow: 0 0 20px rgba(255, 0, 127, 0.1);
+        }
+
+        .admin-title {
+            color: var(--neon-rosa);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .select-custom {
+            width: 100%;
+            padding: 14px;
+            background: #111;
+            border: 1px solid var(--borda-vidro);
+            color: #fff;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>TPA_CPM<br>Notícias</h1>
-        <p>A Central Exclusiva da Maior Comunidade de CPM do Mundo</p>
-    </header>
+    <div id="tela-login">
+        <div class="login-box">
+            <div class="login-logo">TPA_CPM</div>
+            <div class="login-sub" id="login-status-txt">Autenticação Requerida</div>
+            
+            <div class="input-group">
+                <label>Nickname de Piloto</label>
+                <input type="text" id="auth-user" class="input-field" placeholder="Teu nome de piloto...">
+            </div>
+            <div class="input-group">
+                <label>Palavra-passe</label>
+                <input type="password" id="auth-pass" class="input-field" placeholder="••••••••">
+            </div>
 
-    <!-- Barra de Autenticação Integrada -->
-    <div id="auth-box" class="auth-bar">
-        <input type="text" id="username-input" placeholder="Escolhe o teu Nickname...">
-        <button onclick="fazerLogin()">Entrar</button>
-        <button class="btn-secondary" onclick="abrirPainelAdmin()" style="background:#2f3b4c; border:1px solid var(--neon-vermelho);">Painel 👑</button>
-    </div>
-
-    <!-- Status Atual -->
-    <div class="status-badge">
-        <span>Sessão: <span id="user-status">Visitante Anónimo</span></span>
-        <button id="logout-btn" style="background:none; border:none; color:var(--neon-vermelho); font-weight:bold; display:none; cursor:pointer;" onclick="logout()">Sair</button>
-    </div>
-
-    <!-- Feed Automotivo -->
-    <div class="section-title">Feed Automotivo da Malta</div>
-    <div id="feed-container">A carregar publicações...</div>
-
-    <!-- Chat Global -->
-    <div class="section-title">Chat de Pilotos</div>
-    <div class="chat-container">
-        <div class="chat-box" id="chat-messages">A carregar mensagens...</div>
-        <div class="chat-input-bar">
-            <input type="text" id="chat-input" placeholder="Escreve no chat..." onkeypress="if(event.key === 'Enter') enviarMensagem()">
-            <button onclick="enviarMensagem()">Enviar</button>
+            <button class="btn-neon" id="btn-principal-auth" onclick="executarAuth()">Entrar</button>
+            <div class="alternar-modo" onclick="alternarModoAuth()">Não tens conta? <span id="txt-switch">Cadastra-te</span></div>
         </div>
     </div>
 
-    <!-- Painel de Upload Direto da Galeria -->
-    <div id="admin-panel" class="admin-panel">
-        <h3>Painel Administrativo do Chefão 👑</h3>
-        <input type="text" id="post-title" placeholder="Título da Publicação...">
-        
-        <label class="file-label" for="post-file-input">📁 SELECIONAR FOTO OU VÍDEO DA GALERIA</label>
-        <input type="file" id="post-file-input" accept="image/*,video/*" style="display:none;" onchange="mostrarFicheiroSelecionado()">
-        <p id="file-chosen-text" style="font-size:13px; color:var(--admin-color); margin-bottom:12px; text-align:center; font-weight:bold;"></p>
+    <header>
+        <button class="logo-btn" onclick="atualizarAlgoritmoFeed()">
+            TPA_CPM NOTÍCIAS
+            <span>⚡ CLICA PARA ATUALIZAR FEED (ALGORITMO TIKTOK)</span>
+        </button>
+    </header>
 
-        <select id="post-media-type">
-            <option value="foto">É uma Foto / Imagem</option>
-            <option value="video">É um Vídeo</option>
-        </select>
-        
-        <button id="publish-btn" onclick="criarPublicacaoComUpload()">🚀 Carregar e Publicar no Feed</button>
+    <div class="container">
+        <div class="feed-container" id="feed-noticias"></div>
+
+        <div class="chat-section">
+            <div class="chat-header">💬 CHAT DE PILOTOS (TEMPO REAL)</div>
+            <div class="chat-messages" id="chat-box"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-msg" class="chat-input" placeholder="Escreve uma mensagem...">
+                <button class="btn-send" onclick="enviarMensagemChat()">Enviar</button>
+            </div>
+        </div>
+
+        <div class="admin-panel" id="painel-admin" style="display:none;">
+            <div class="admin-title">👑 Painel Administrativo do Chefão</div>
+            <div class="input-group">
+                <label>Título / Descrição do Post</label>
+                <input type="text" id="post-titulo" class="input-field" placeholder="O que queres anunciar à malta?">
+            </div>
+            <div class="input-group">
+                <label>Categoria do Algoritmo</label>
+                <select id="post-categoria" class="select-custom">
+                    <option value="geral">Geral / Encontros</option>
+                    <option value="tuning">Tuning / Projetos</option>
+                    <option value="corrida">Corridas / Drifts</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Selecionar Arquivo (Foto ou Vídeo)</label>
+                <input type="file" id="post-file" accept="image/*,video/*" class="input-field">
+            </div>
+            <button class="btn-neon" style="border-color: var(--neon-rosa);" onclick="criarPublicacao()">🚀 Carregar e Publicar no Feed</button>
+        </div>
     </div>
 
     <script>
-        const SUPABASE_URL = "https://lsvrxtrqqxdnrjpcrzbb.supabase.co";
-        const SUPABASE_ANON_KEY = "Sb_publishable_mRiCBLIq3fRbYnY6RFRrHw_xe5r6Ytq";
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // CONFIGURAÇÕES DO SUPABASE INTEGRADAS COM A CHAVE DO CHEFÃO
+        const SUPABASE_URL = "https://mricbliq3frbyny6rfrh.supabase.co"; 
+        const SUPABASE_KEY = "sb_publishable_mRiCBLIq3fRbYnY6RFRrHw_xe5r6Ytq";
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let currentUser = localStorage.getItem("cpm_nick") || null;
-        let isAdmin = localStorage.getItem("cpm_is_admin") === "true";
+        let utilizadorLogado = null;
+        let modoCadastro = false;
 
-        window.onload = function() {
-            atualizarInterfaceUsuario();
-            carregarFeed();
-            carregarChat();
-            setInterval(carregarChat, 3000);
-        };
-
-        function mostrarFicheiroSelecionado() {
-            const fileInput = document.getElementById("post-file-input");
-            const textPlaceholder = document.getElementById("file-chosen-text");
-            if(fileInput.files.length > 0) {
-                textPlaceholder.innerText = "Ficheiro Pronto: " + fileInput.files[0].name;
-            }
+        function alternarModoAuth() {
+            modoCadastro = !modoCadastro;
+            document.getElementById('login-status-txt').innerText = modoCadastro ? "Criar Nova Conta de Piloto" : "Autenticação Requerida";
+            document.getElementById('btn-principal-auth').innerText = modoCadastro ? "Cadastrar" : "Entrar";
+            document.getElementById('txt-switch').innerText = modoCadastro ? "Fazer Login" : "Cadastra-te";
         }
 
-        function atualizarInterfaceUsuario() {
-            const statusLabel = document.getElementById("user-status");
-            const authBox = document.getElementById("auth-box");
-            const logoutBtn = document.getElementById("logout-btn");
+        async function gerarHash(string) {
+            const msgBuffer = new TextEncoder().encode(string);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
 
-            if (isAdmin) {
-                statusLabel.innerText = "Chefão Didy 👑";
-                statusLabel.style.color = "var(--admin-color)";
-                authBox.style.display = "none";
-                logoutBtn.style.display = "block";
-                document.getElementById("admin-panel").style.display = "block";
-            } else if (currentUser) {
-                statusLabel.innerText = currentUser;
-                statusLabel.style.color = "var(--neon-azul)";
-                authBox.style.display = "none";
-                logoutBtn.style.display = "block";
-                document.getElementById("admin-panel").style.display = "none";
+        async function executarAuth() {
+            const user = document.getElementById('auth-user').value.trim();
+            const pass = document.getElementById('auth-pass').value;
+
+            if(!user || !pass) return alert("Preenche todos os campos!");
+            const passHash = await gerarHash(pass);
+
+            if(modoCadastro) {
+                const { error } = await _supabase.from('perfis_utilizadores').insert([{ username: user, password_hash: passHash }]);
+                if(error) return alert("Erro: Nickname já está em uso.");
+                alert("Conta de piloto criada com sucesso! Faz o login agora.");
+                alternarModoAuth();
             } else {
-                statusLabel.innerText = "Visitante Anónimo";
-                statusLabel.style.color = "#fff";
-                authBox.style.display = "flex";
-                logoutBtn.style.display = "none";
-                document.getElementById("admin-panel").style.display = "none";
-            }
-        }
+                const { data, error } = await _supabase.from('perfis_utilizadores').select('*').eq('username', user).eq('password_hash', passHash).maybeSingle();
+                if(error || !data) return alert("Dados incorretos ou piloto não cadastrado.");
+                
+                utilizadorLogado = data.username;
+                document.getElementById('tela-login').style.opacity = '0';
+                setTimeout(() => document.getElementById('tela-login').style.visibility = 'hidden', 500);
 
-        async function fazerLogin() {
-            const input = document.getElementById("username-input");
-            const nickname = input.value.trim();
-            if (!nickname) return alert("Insere um nick!");
-
-            const { data } = await _supabase.from('membros').select('*').eq('username', nickname);
-            if (data && data.length === 0) {
-                await _supabase.from('membros').insert([{ username: nickname }]);
-            }
-
-            currentUser = nickname;
-            isAdmin = false;
-            localStorage.setItem("cpm_nick", nickname);
-            localStorage.setItem("cpm_is_admin", "false");
-            atualizarInterfaceUsuario();
-        }
-
-        function abrirPainelAdmin() {
-            const senha = prompt("Palavra-passe do Administrador:");
-            if (senha === "007") {
-                currentUser = "Chefão Didy";
-                isAdmin = true;
-                localStorage.setItem("cpm_nick", "Chefão Didy");
-                localStorage.setItem("cpm_is_admin", "true");
-                atualizarInterfaceUsuario();
-            } else {
-                alert("Acesso negado!");
-            }
-        }
-
-        function logout() {
-            localStorage.clear();
-            currentUser = null;
-            isAdmin = false;
-            atualizarInterfaceUsuario();
-        }
-
-        async function carregarFeed() {
-            const { data: posts } = await _supabase.from('feed_noticias').select('*').order('id', { ascending: false });
-            const feedContainer = document.getElementById("feed-container");
-            if (!posts || posts.length === 0) {
-                feedContainer.innerHTML = "<p style='padding:15px;color:#a0aec0;'>Nenhuma publicação no feed.</p>";
-                return;
-            }
-
-            feedContainer.innerHTML = "";
-            posts.forEach(post => {
-                let mediaHTML = "";
-                if (post.tipo_media === 'video') {
-                    mediaHTML = `<video class="post-media" src="${post.media_url}" controls preload="metadata"></video>`;
-                } else {
-                    mediaHTML = `<img class="post-media" src="${post.media_url}" alt="Imagem">`;
+                if(utilizadorLogado === "Chefão Didy" || pass === "007") {
+                    document.getElementById('painel-admin').style.display = 'block';
                 }
 
-                feedContainer.innerHTML += `
-                    <div class="post-card">
-                        <div class="post-title">${post.titulo}</div>
-                        ${mediaHTML}
-                        <div class="post-actions">
-                            <span class="like-btn" onclick="curtirPost(${post.id}, ${post.curtidas})">❤️</span> 
-                            <span>${post.curtidas} Curtidas</span>
+                inicializarApp();
+            }
+        }
+
+        function inicializarApp() {
+            carregarFeedRecomendado();
+            carregarChat();
+            escutarChatRealtime();
+        }
+
+        async function carregarChat() {
+            const { data, error } = await _supabase.from('chat_pilotos').select('*').order('criado_em', { ascending: true }).limit(80);
+            if(!error && data) {
+                const box = document.getElementById('chat-box');
+                box.innerHTML = '';
+                data.forEach(m => {
+                    box.innerHTML += `<div class="msg-box"><div class="msg-user">${m.username}</div><div>${m.mensagem}</div></div>`;
+                });
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        async function enviarMensagemChat() {
+            const msgInput = document.getElementById('chat-msg');
+            const txt = msgInput.value.trim();
+            if(!txt) return;
+
+            await _supabase.from('chat_pilotos').insert([{ username: utilizadorLogado, mensagem: txt }]);
+            msgInput.value = '';
+        }
+
+        function escutarChatRealtime() {
+            _supabase.channel('room-chat')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_pilotos' }, payload => {
+                const box = document.getElementById('chat-box');
+                box.innerHTML += `<div class="msg-box"><div class="msg-user">${payload.new.username}</div><div>${payload.new.mensagem}</div></div>`;
+                box.scrollTop = box.scrollHeight;
+            }).subscribe();
+        }
+
+        async function carregarFeedRecomendado() {
+            const { data: pref } = await _supabase.from('interesses_utilizadores').select('categoria_media, peso');
+            let { data: posts, error } = await _supabase.from('feed_noticias').select('*').order('criado_em', { ascending: false });
+            
+            if(error || !posts) return;
+
+            if(pref && pref.length > 0) {
+                posts.sort((a, b) => {
+                    let pesoA = pref.find(p => p.categoria_media === a.categoria)?.peso || 0;
+                    let pesoB = pref.find(p => p.categoria_media === b.categoria)?.peso || 0;
+                    return pesoB - pesoA;
+                });
+            }
+
+            const feed = document.getElementById('feed-noticias');
+            feed.innerHTML = posts.length === 0 ? '<p style="text-align:center;color:gray;padding:20px;">Nenhuma publicação no feed.</p>' : '';
+
+            posts.forEach(p => {
+                let mediaTag = "";
+                if (p.media_url) {
+                    mediaTag = p.media_url.toLowerCase().includes('.mp4') ? 
+                        `<video src="${p.media_url}" class="post-media" controls></video>` : 
+                        `<img src="${p.media_url}" class="post-media" alt="Foto">`;
+                }
+
+                feed.innerHTML += `
+                    <div class="card-post">
+                        <div class="post-header">
+                            <span class="post-autor">📢 TPA_CPM</span>
+                            <span style="font-size:0.75rem; color:var(--neon-azul); text-transform:uppercase;">${p.categoria || 'geral'}</span>
                         </div>
-                    </div>
-                `;
+                        ${mediaTag}
+                        <div class="post-titulo">${p.titulo}</div>
+                        <div class="post-actions">
+                            <button class="btn-action" onclick="computarGosto('${p.id}', '${p.categoria || 'geral'}', this)">❤️ Gostar</button>
+                        </div>
+                    </div>`;
             });
         }
 
-        async function criarPublicacaoComUpload() {
-            if (!isAdmin) return;
-            const titulo = document.getElementById("post-title").value.trim();
-            const fileInput = document.getElementById("post-file-input");
-            const tipoMedia = document.getElementById("post-media-type").value;
-            const publishBtn = document.getElementById("publish-btn");
+        async function computarGosto(postId, categoria, btn) {
+            btn.classList.toggle('liked');
+            if(!btn.classList.contains('liked')) return;
 
-            if (!titulo) return alert("Escreve o título!");
-            if (fileInput.files.length === 0) return alert("Escolhe o ficheiro da galeria!");
+            const { data } = await _supabase.from('interesses_utilizadores').select('*').eq('categoria_media', categoria).maybeSingle();
+            if(data) {
+                await _supabase.from('interesses_utilizadores').update({ peso: data.peso + 1 }).eq('categoria_media', categoria);
+            } else {
+                await _supabase.from('interesses_utilizadores').insert([{ categoria_media: categoria, peso: 1 }]);
+            }
+        }
+
+        function atualizarAlgoritmoFeed() {
+            carregarFeedRecomendado();
+        }
+
+        async function criarPublicacao() {
+            const titulo = document.getElementById('post-titulo').value.trim();
+            const categoria = document.getElementById('post-categoria').value;
+            const fileInput = document.getElementById('post-file');
+
+            if(!titulo || fileInput.files.length === 0) return alert("Preenche a descrição e escolhe a foto ou vídeo!");
 
             const file = fileInput.files[0];
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}.${fileExt}`;
+            const fileName = `${Date.now()}_${file.name}`;
 
-            publishBtn.innerText = "⏳ A ENVIAR PARA A BASE DE DADOS...";
-            publishBtn.disabled = true;
-
-                        const { data: uploadData, error: uploadError } = await _supabase.storage
-                .from('MIDIA_CPM')
-                .upload(fileName, file, {
-                    cacheControl: '3600',
-                    upsert: false
-                });
-
-            if (uploadError) {
-                alert("Erro de Upload: " + uploadError.message);
-                publishBtn.innerText = "🚀 Carregar e Publicar no Feed";
-                publishBtn.disabled = false;
-                return;
-            }
+            const { data: uploadData, error: uploadError } = await _supabase.storage.from('MIDIA_CPM').upload(fileName, file);
+            if(uploadError) return alert("Erro no upload do arquivo: " + uploadError.message);
 
             const { data: linkData } = _supabase.storage.from('MIDIA_CPM').getPublicUrl(fileName);
             const publicUrl = linkData.publicUrl;
 
-            await _supabase.from('feed_noticias').insert([
-                { titulo: titulo, media_url: publicUrl, tipo_media: tipoMedia, curtidas: 0 }
-            ]);
+            const { error: dbError } = await _supabase.from('feed_noticias').insert([{ titulo: titulo, media_url: publicUrl, categoria: categoria }]);
+            if(dbError) return alert("Erro ao salvar dados do post: " + dbError.message);
 
-            alert("Publicado com sucesso, Chefão!");
-            document.getElementById("post-title").value = "";
-            fileInput.value = "";
-            document.getElementById("file-chosen-text").innerText = "";
-            publishBtn.innerText = "🚀 Carregar e Publicar no Feed";
-            publishBtn.disabled = false;
-            carregarFeed();
-        }
-
-        async function curtirPost(postId, curtidasAtuais) {
-            await _supabase.from('feed_noticias').update({ curtidas: curtidasAtuais + 1 }).eq('id', postId);
-            carregarFeed();
-        }
-
-        async function carregarChat() {
-            const { data: mensagens } = await _supabase.from('chat_global').select('*').order('id', { ascending: true });
-            const chatBox = document.getElementById("chat-messages");
-            if (!mensagens) return;
-
-            chatBox.innerHTML = "";
-            mensagens.forEach(msg => {
-                const classeUser = msg.is_admin ? "msg-admin" : "msg-user";
-                chatBox.innerHTML += `
-                    <div class="chat-msg">
-                        <span class="${classeUser}">${msg.username}:</span> ${msg.mensagem}
-                    </div>
-                `;
-            });
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        async function enviarMensagem() {
-            const input = document.getElementById("chat-input");
-            const texto = input.value.trim();
-            if (!texto) return;
-            if (!currentUser) return alert("Escolhe um Nickname primeiro!");
-
-            await _supabase.from('chat_global').insert([
-                { username: currentUser, mensagem: texto, is_admin: isAdmin }
-            ]);
-            input.value = "";
-            carregarChat();
+            alert("Publicação enviada com sucesso para o algoritmo, Chefão!");
+            document.getElementById('post-titulo').value = '';
+            fileInput.value = '';
+            carregarFeedRecomendado();
         }
     </script>
 </body>
