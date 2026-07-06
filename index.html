@@ -243,7 +243,7 @@
             publishBtn.disabled = true;
 
                         const { data: uploadData, error: uploadError } = await _supabase.storage
-                .from('midia_cpm')
+                .from('MIDIA_CPM')
                 .upload(fileName, file, {
                     cacheControl: '3600',
                     upsert: false
@@ -256,7 +256,7 @@
                 return;
             }
 
-            const { data: linkData } = _supabase.storage.from('midia_cpm').getPublicUrl(fileName);
+            const { data: linkData } = _supabase.storage.from('MIDIA_CPM').getPublicUrl(fileName);
             const publicUrl = linkData.publicUrl;
 
             await _supabase.from('feed_noticias').insert([
