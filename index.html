@@ -242,12 +242,15 @@
             publishBtn.innerText = "⏳ A ENVIAR PARA A BASE DE DADOS...";
             publishBtn.disabled = true;
 
-            const { data: uploadData, error: uploadError } = await _supabase.storage
+                        const { data: uploadData, error: uploadError } = await _supabase.storage
                 .from('midia_cpm')
-                .upload(fileName, file);
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
 
             if (uploadError) {
-                alert("Erro no upload: " + uploadError.message);
+                alert("Erro de Upload: " + uploadError.message);
                 publishBtn.innerText = "🚀 Carregar e Publicar no Feed";
                 publishBtn.disabled = false;
                 return;
