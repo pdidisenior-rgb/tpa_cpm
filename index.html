@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TPA_CPM NOTÍCIAS</title>
+    <!-- Carrega a biblioteca Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg-principal: #0a0b10; --neon-azul: #00f0ff; --neon-rosa: #ff007f; --texto: #ffffff; }
@@ -19,6 +20,7 @@
 </head>
 <body>
 
+    <!-- LOGIN -->
     <div id="tela-login">
         <div class="login-box">
             <h2>TPA_CPM</h2>
@@ -30,14 +32,18 @@
         </div>
     </div>
 
+    <!-- CONTEÚDO PRINCIPAL -->
     <div id="conteudo" style="padding-bottom: 50px;">
         <h1 style="text-align:center; padding-top:20px;">TPA_CPM NOTÍCIAS</h1>
         <div id="feed-noticias"></div>
         <div id="chat-box" style="height: 200px; overflow-y:scroll; border: 1px solid #333; margin: 20px; padding: 10px;"></div>
-        <input type="text" id="chat-msg" placeholder="Mensagem...">
-        <button onclick="enviarMensagemChat()">Enviar</button>
+        <div style="margin: 20px;">
+            <input type="text" id="chat-msg" placeholder="Mensagem...">
+            <button onclick="enviarMensagemChat()">Enviar</button>
+        </div>
     </div>
 
+    <!-- PAINEL ADMIN -->
     <div id="painel-admin">
         <h3>👑 Painel Admin</h3>
         <input type="text" id="post-titulo" class="input-field" placeholder="Título">
@@ -46,12 +52,17 @@
     </div>
 
     <script>
+        // CONFIGURAÇÃO DO SUPABASE
         const SUPABASE_URL = "https://mricbliq3frbyny6rfrh.supabase.co"; 
         const SUPABASE_KEY = "sb_publishable_mRiCBLIq3fRbYnY6RFRrHw_xe5r6Ytq";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // VARIÁVEIS DE ESTADO
         let utilizadorLogado = null;
         let modoCadastro = false;
     </script>
+
+    <!-- CHAMADA DOS MÓDULOS JS QUE JÁ CRIASTE -->
     <script src="auth.js"></script>
     <script src="chat.js"></script>
     <script src="feed.js"></script>
